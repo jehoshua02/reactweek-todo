@@ -21,11 +21,20 @@ var ListContainer = React.createClass({
     })
   },
   render: function(){
+    var styles = require('./ListContainer.styles.js');
+    styles.container.backgroundColor = this.props.color;
+
     return (
-      <div className="col-sm-6 col-md-offset-3">
-        <div className="col-sm-12">
-          <h3 className="text-center"> Todo List </h3>
-          <AddItem add={this.handleAddItem}/>
+      <div className="col-sm-6">
+        <div className="col-sm-12" style={styles.container}>
+          <span
+            className="glyphicon glyphicon-remove"
+            style={styles.remove}
+            onClick={this.props.onRemove.bind(null, this.props.index)}
+          >
+          </span>
+          <h3 className="text-center">{this.props.title}</h3>
+          <AddItem add={this.handleAddItem} />
           <List items={this.state.list} remove={this.handleRemoveItem}/>
         </div>
       </div>
