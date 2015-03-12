@@ -3,20 +3,8 @@ var React = require('react');
 
 var AddItem = React.createClass({
 
-  propTypes: {
-    add: React.PropTypes.func.isRequired
-  },
-
-  getDefaultProps: function () {
-    return {
-      add: null
-    };
-  },
-
   getInitialState: function () {
-    return {
-      newItem: ''
-    };
+    return { newItem: '' };
   },
 
   render: function () {
@@ -27,24 +15,21 @@ var AddItem = React.createClass({
           value={this.state.newItem}
           placeholder="New Item"
           onChange={this.handleChange}
-          onKeyDown={this.handleSubmit}
+          onKeyDown={this.handleKeyDown}
         />
       </div>
     );
   },
 
   handleChange: function (event) {
-    this.setState({
-      newItem: event.target.value
-    });
+    this.setState({ newItem: event.target.value });
   },
 
-  handleSubmit: function (event) {
-    if (event.keyCode === 13) {
-      this.props.add(this.state.newItem);
-      this.setState({
-        newItem: ''
-      });
+  handleKeyDown: function (event) {
+    var ENTER = 13;
+    if (event.keyCode === ENTER) {
+      this.props.addItem(this.state.newItem);
+      this.setState({ newItem: '' });
     }
   }
 

@@ -5,6 +5,7 @@ var Firebase = require('firebase');
 
 
 var App = React.createClass({
+
   getInitialState: function () {
     return {
       lists: []

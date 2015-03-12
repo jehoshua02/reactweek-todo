@@ -2,6 +2,8 @@ var React = require('react');
 var AddItem = require('./AddItem');
 var List = require('./List');
 var Firebase = require('firebase');
+var Store = require('../stores/Items');
+var Actions = require('../actions');
 
 
 var ListContainer = React.createClass({
@@ -33,7 +35,7 @@ var ListContainer = React.createClass({
           >
           </span>
           <h3 className="text-center">{this.props.data.title}</h3>
-          <AddItem add={this.handleAddItem} />
+          <AddItem addItem={this.handleAddItem} />
           {this.renderList()}
         </div>
       </div>
@@ -41,14 +43,18 @@ var ListContainer = React.createClass({
   },
 
   componentDidMount: function () {
-    this.firebase = new Firebase(this.props.firebaseUrl);
-    this.firebase.on('child_added', this.handleItemAdded);
-    this.firebase.on('child_removed', this.handleItemRemoved);
+    Store.listen(this.updateItems);
   },
 
-  componentWillUnmount: function () {
-    this.firebase.off('child_added', this.handleItemAdded);
-    this.firebase.off('child_removed', this.handleItemRemoved);
+  updateItems: function (items) {
+    console.log(items);
+    items = items.filter(function (item) {
+      return item.listKey === this.props.data.key
+    }.bind(this));
+
+    this.setState({
+      items: items
+    });
   },
 
   renderList: function () {
@@ -60,7 +66,7 @@ var ListContainer = React.createClass({
           <span
             className="glyphicon glyphicon-remove"
             style={styles.removeItem}
-            onClick={this.handleRemoveItem.bind(null, item.key)}
+            onClick={this.handleRemoveItem.bind(null, item.key, this.props.data.key)}
           >
           </span>
           <span style={styles.todoItem}>
@@ -78,22 +84,11 @@ var ListContainer = React.createClass({
   },
 
   handleAddItem: function(item) {
-    this.firebase.push(item);
+    Actions.addItem(this.props.data.key, item);
   },
 
-  handleItemAdded: function (snapshot) {
-    var item = { value: snapshot.val(), key: snapshot.key() };
-    this.setState({ items: this.state.items.concat(item) });
-  },
-
-  handleRemoveItem: function(key) {
-    this.firebase.child(key).remove();
-  },
-
-  handleItemRemoved: function (snapshot) {
-    var key = snapshot.key();
-    var items = this.state.items.filter(function (item) { return item.key !== key; });
-    this.setState({ items: items });
+  handleRemoveItem: function (key) {
+    // Actions.removeItem(key);
   }
 });
 
