@@ -1,7 +1,6 @@
 var React = require('react');
 var AddItem = require('./AddItem');
 var List = require('./List');
-var Firebase = require('firebase');
 var Store = require('../stores/Items');
 var Actions = require('../actions');
 
@@ -17,7 +16,7 @@ var ListContainer = React.createClass({
 
   getInitialState: function(){
     return {
-      items: []
+      items: Store.getItems(this.props.data.key)
     }
   },
 
@@ -46,15 +45,8 @@ var ListContainer = React.createClass({
     Store.listen(this.updateItems);
   },
 
-  updateItems: function (items) {
-    console.log(items);
-    items = items.filter(function (item) {
-      return item.listKey === this.props.data.key
-    }.bind(this));
-
-    this.setState({
-      items: items
-    });
+  updateItems: function () {
+    this.setState({ items: Store.getItems(this.props.data.key) });
   },
 
   renderList: function () {
@@ -66,7 +58,7 @@ var ListContainer = React.createClass({
           <span
             className="glyphicon glyphicon-remove"
             style={styles.removeItem}
-            onClick={this.handleRemoveItem.bind(null, item.key, this.props.data.key)}
+            onClick={this.handleRemoveItem.bind(null, item.key)}
           >
           </span>
           <span style={styles.todoItem}>
@@ -84,11 +76,11 @@ var ListContainer = React.createClass({
   },
 
   handleAddItem: function(item) {
-    Actions.addItem(this.props.data.key, item);
+    Actions.item.add({ listKey: this.props.data.key, value: item });
   },
 
   handleRemoveItem: function (key) {
-    // Actions.removeItem(key);
+    Actions.item.remove(key);
   }
 });
 

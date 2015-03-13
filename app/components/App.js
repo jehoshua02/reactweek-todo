@@ -1,14 +1,14 @@
 var React = require('react');
 var ListContainer = require('./ListContainer');
 var AddList = require('./AddList');
-var Firebase = require('firebase');
-
+var Actions = require('../actions');
+var Store = require('../stores/Lists');
 
 var App = React.createClass({
 
   getInitialState: function () {
     return {
-      lists: []
+      lists: Store.getLists()
     };
   },
 
@@ -18,7 +18,6 @@ var App = React.createClass({
         <ListContainer
           key={list.key}
           data={list}
-          firebaseUrl={this.firebase.root.child('items/' + list.key).toString()}
           onRemove={this.handleRemoveList.bind(null, list.key)}
         />
       );
@@ -35,26 +34,21 @@ var App = React.createClass({
   },
 
   componentDidMount: function () {
-    this.firebase = { root: new Firebase('https://jehoshua02-reactweek-todo.firebaseio.com') };
-    this.firebase.lists = this.firebase.root.child('lists');
-    this.firebase.items = this.firebase.root.child('items');
-
-    // bind events
-    this.firebase.lists.on('child_added', this.handleListAdded);
-    this.firebase.lists.on('child_removed', this.handleListRemoved);
+    this.unsubStore = Store.listen(function () {
+      this.setState({ lists: Store.getLists() });
+    }.bind(this));
   },
 
   componentWillUnmount: function () {
-    this.firebase.lists.off('child_added', this.handleListAdded);
+    this.unsubStore();
   },
 
   handleAddList: function (list) {
-    this.firebase.lists.push(list);
+    Actions.list.add(list);
   },
 
   handleRemoveList: function (key) {
-    this.firebase.lists.child(key).remove();
-    this.firebase.items.child(key).remove();
+    Actions.list.remove(key);
   },
 
   handleListAdded: function (snapshot) {

@@ -1,39 +1,43 @@
 var Reflux = require('reflux');
 var Actions = require('../actions');
-var firebase = require('../util/firebase');
+var firebase = require('../util/firebase').child('items');
 
+var items = [];
+
+var updateItems = function (snapshot) {
+  items = [];
+  var value = snapshot.val();
+  if (!value) { return; }
+  Object.keys(value).forEach(function (key) {
+    var item = value[key];
+    item.key = key;
+    items.push(item);
+  });
+};
+
+var addItem = function (item) {
+  firebase.push(item);
+};
+
+var removeItem = function (key) {
+  firebase.child(key).remove();
+};
 
 var Items = Reflux.createStore({
   init: function () {
-    Actions.addItem.listen(this.addItem);
-    this.firebase = firebase.child('items');
-    this.firebase.on('value', this.updateItems);
+    Actions.item.add.listen(addItem);
+    Actions.item.remove.listen(removeItem);
+
+    firebase.on('value', function (snapshot) {
+      updateItems(snapshot);
+      this.trigger();
+    }.bind(this));
   },
 
-  // teardown: function () {
-  //   this.firebase.off('child_added', this.handleItemAdded);
-  //   this.firebase.off('child_removed', this.handleItemRemoved);
-  // },
-
-  addItem: function (listKey, item) {
-    this.firebase.child(listKey).push(item);
-  },
-
-  updateItems: function (snapshot) {
-    var items = [];
-    var value = snapshot.val();
-    Object.keys(value).forEach(function (listKey) {
-      Object.keys(value[listKey]).forEach(function (key) {
-        items.push({
-          listKey: listKey,
-          key: key,
-          value: value[listKey][key]
-        });
-      });
+  getItems: function (listKey) {
+    return items.filter(function (item) {
+      return item.listKey === listKey;
     });
-
-    this.items = items;
-    this.trigger(this.items);
   }
 });
 
